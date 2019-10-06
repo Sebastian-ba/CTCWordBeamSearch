@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import division
 import numpy as np
 import tensorflow as tf
+import tensorflow.compat.v1 as tfv1
 import codecs
 
 
@@ -9,14 +10,14 @@ def testCustomOp(feedMat, corpus, chars, wordChars):
 	"decode using word beam search. Result is tuple, first entry is label string, second entry is char string."
 
 	# TF session
-	sess = tf.Session()
-	sess.run(tf.global_variables_initializer())
+	sess = tfv1.Session()
+	sess.run(tfv1.global_variables_initializer())
 
 	# load custom TF op
-	word_beam_search_module = tf.load_op_library('../cpp/proj/TFWordBeamSearch.so')
+	word_beam_search_module = tfv1.load_op_library('../cpp/proj/TFWordBeamSearch.so')
 
 	# input with shape TxBxC
-	mat=tf.placeholder(tf.float32, shape=feedMat.shape)
+	mat=tfv1.placeholder(tf.float32, shape=feedMat.shape)
 
 	# decode using the "Words" mode of word beam search with beam width set to 25 and add-k smoothing to 0.0
 	assert len(chars) + 1 == mat.shape[2]
@@ -58,7 +59,11 @@ def testMiniExample():
 	corpus = 'a ba' # two words "a" and "ba", separated by whitespace
 	chars = 'ab ' # the first three characters which occur in the matrix (in this ordering)
 	wordChars = 'ab' # whitespace not included which serves as word-separating character
-	mat = np.array([[[0.9, 0.1, 0.0, 0.0]],[[0.0, 0.0, 0.0, 1.0]],[[0.6, 0.4, 0.0, 0.0]]]) # 3 time-steps and 4 characters per time time ("a", "b", " ", blank)
+	mat = np.array([
+			[[0.9, 0.1, 0.0, 0.0]],
+			[[0.0, 0.0, 0.0, 1.0]],
+			[[0.6, 0.4, 0.0, 0.0]]
+		]) # 3 time-steps and 4 characters per time time ("a", "b", " ", blank)
 
 	res = testCustomOp(mat, corpus, chars, wordChars)	
 	print('')
